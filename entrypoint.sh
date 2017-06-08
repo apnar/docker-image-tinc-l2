@@ -9,6 +9,7 @@ ip address flush dev eth0
 brctl addif tinc-bridge eth0
 ifconfig eth0 up
 route add default gw $GW
+ip address flush dev eth0
 
 exec /usr/sbin/tinc start -D -U nobody
 
