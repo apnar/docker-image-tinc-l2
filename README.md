@@ -1,4 +1,4 @@
-# tinc for Docker
+# tinc layer 2 for Docker
 
 Dockerfile (c) 2015 Jens Erat, email@jenserat.de  
 modified by Josh Lukens, jlukens@botch.com
@@ -16,9 +16,9 @@ tinc requires access to `/dev/net/tun`. Allow the container access to the device
 
 This container assumes it has an eth0 interface inside it which it then converts to a bridge so it can attach tinc's tap interface to for layer 2 bridging.  This is most easily accomplished with the use of the macvlan driver.  So prior to launching the container you'd want to create the docker macvlan network with a command like:
 
-  docker network create \
-    -d macvlan --subnet=192.168.1.0/24 \
-    --gateway=192.168.1.1 -o parent=eth0 macvlan
+    docker network create \
+      -d macvlan --subnet=192.168.1.0/24 \
+      --gateway=192.168.1.1 -o parent=eth0 macvlan
 
 A reasonable basic run command loading persisted configuratino from `/srv/tinc` and creating the VPN on the host network would be
 
@@ -35,16 +35,16 @@ A reasonable basic run command loading persisted configuratino from `/srv/tinc` 
 
 This container is designed to be used for layer 2 bridging so should be used only with tinc's "switch" mode.  A sample tinc.conf might look like:
 
-  Name = segment1
-  Mode = switch
-  ConnectTo = segment2
+    Name = segment1
+    Mode = switch
+    ConnectTo = segment2
 
 With a tinc-up script like:
 
-  #!/bin/sh
-  ifconfig $INTERFACE 0.0.0.0
-  brctl addif tinc-bridge $INTERFACE
-  ifconfig $INTERFACE up
+    #!/bin/sh
+    ifconfig $INTERFACE 0.0.0.0
+    brctl addif tinc-bridge $INTERFACE
+    ifconfig $INTERFACE up
 
 ## Administration and Maintenance
 
