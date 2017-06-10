@@ -1,4 +1,4 @@
-# tinc layer 2 for Docker
+# tinc for Docker with bridge-utils
 
 Dockerfile (c) 2015 Jens Erat, email@jenserat.de  
 modified by Josh Lukens, jlukens@botch.com
@@ -14,22 +14,30 @@ tinc requires access to `/dev/net/tun`. Allow the container access to the device
 
     --device=/dev/net/tun --cap-add NET_ADMIN
 
-This container assumes it has an eth0 interface inside it which it then converts to a bridge so it can attach tinc's tap interface to for layer 2 bridging.  This is most easily accomplished with the use of the macvlan driver.  So prior to launching the container you'd want to create the docker macvlan network with a command like:
-
-    docker network create \
-      -d macvlan --subnet=192.168.1.0/24 \
-      --gateway=192.168.1.1 -o parent=eth0 macvlan
-
-A reasonable basic run command loading persisted configuratino from `/srv/tinc` and creating the VPN on the host network would be
+A reasonable basic run command loading persisted configuration from `/srv/tinc` and creating the VPN on the host network would be
 
     docker run -d \
         --name tinc \
-        --net=macvlan \
-        --ip=192.168.1.10 \
+        --net=host \
         --device=/dev/net/tun \
         --cap-add NET_ADMIN \
         --volume /srv/tinc:/etc/tinc \
         apnar/tinc-l2 
+
+## Waiting for interface
+
+In a number of confiurations you may want to add or change interfaces (with something like pipework or docker network) to the container prior to tinc actually starting.  You can do that by defining the enviroment variable WAIT_INT in your doccker command.   
+
+    docker run -d \
+        --name tinc \
+        --net=host \
+        --env WAIT_INT=eth2 \
+        --device=/dev/net/tun \
+        --cap-add NET_ADMIN \
+        --volume /srv/tinc:/etc/tinc \
+        apnar/tinc-l2 
+
+In the above example tinc won't start until the eth2 interface exists.  At which point you can do all your network shuffling via your tinc-up script.
 
 ## Sample tinc config
 
@@ -43,7 +51,7 @@ With a tinc-up script like:
 
     #!/bin/sh
     ifconfig $INTERFACE 0.0.0.0
-    brctl addif tinc-bridge $INTERFACE
+    brctl addif br0 $INTERFACE
     ifconfig $INTERFACE up
 
 ## Administration and Maintenance

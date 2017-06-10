@@ -15,5 +15,6 @@ EXPOSE 655/tcp 655/udp
 VOLUME /etc/tinc
 
 COPY entrypoint.sh /entrypoint.sh
+COPY pipework /usr/bin/pipework
 RUN chmod 755 /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
